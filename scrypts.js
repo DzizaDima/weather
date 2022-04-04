@@ -35,7 +35,17 @@ getLocationPromise.then(location => getWeather(location)).then((response)=>{
    spinner.setAttribute('hidden', '');
    console.log(response)
    console.log("GGg",response.main.temp)
-   console.log("icon", `http://openweathermap.org/img/wn/${response.weather.icon}@2x.png`)
+   console.log("icon", `http://openweathermap.org/img/wn/${response.weather[0].icon}@2x.png`)
+   let html = ` 
+<div class="card">
+   <div class="icon">
+      <img src="http://openweathermap.org/img/wn/${response.weather[0].icon}@2x.png" alt="">
+   </div>
+   <h4 class="temp">Temperature ${Math.round(response.main.temp)}</h4>
+   <span class="feels">Feels like ${Math.round(response.main.feels_like)}</span>
+   <span class="wind">Wind speed ${response.wind.speed}</span>
+</div>`;
+document.getElementById("weather").innerHTML = html
 }).catch((err) => {
    console.log(err)
 })
