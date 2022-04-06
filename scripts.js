@@ -10,7 +10,6 @@ function getWeather(location){
 
    loadingToggle()
    return fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=c708b1623179bb92fb6654448ed0ba58&units=metric`)
-   //return fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=hourly&appid=c708b1623179bb92fb6654448ed0ba58&units=metric`)
    .then(response => response.json())
 }
 
@@ -23,20 +22,18 @@ function getWeatherDates(location){
    .then(response => response.json())
 }
 
+function getCurrencies(){
+  return fetch(`http://data.fixer.io/api/latest?access_key=ff29ea98db8265fd2014df21e97bb6a7&base=EUR&symbols=UAH,RUB,USD`)
+   .then(response => response.json())
+}
+
 function renderTodayWeather(data){
    document.getElementById("city").innerHTML = data.name
-   //data = data.daily[0];
    loadingToggle();
-
-   console.log(data)
 
    var date = new Date(data.dt * 1000),
    month = date.getMonth(),
    monthFull = monthArr[month];
-   
-   console.log("rrr",   date.toDateString())
-   console.log("rrr",   date.getDate())
-   console.log("rrr", monthFull)
    let html = ` 
       <div class="card weather-today">
          <div class="date">
@@ -63,15 +60,10 @@ function displayMoreWeather(){
       console.log("days",response.daily[0])
 
       for(let i=1,j=response.daily.length; i<j; i++){
-         console.log(response.daily[i])
          let day = response.daily[i];
          var date = new Date(response.daily[i].dt * 1000),
          month = date.getMonth(),
          monthFull = monthArr[month];
-         
-         console.log("toDateString",   date.toDateString())
-         console.log("getDate",   date.getDate())
-         console.log("monthFull", monthFull)
 
          let html = ` 
          <div class="card">
@@ -98,6 +90,57 @@ function displayMoreWeather(){
    })
 }
 
+function renderCurrency(){
+  getCurrencies().then((response) => {
+      let uah = response.rates.UAH.toFixed(2),
+      rub = response.rates.RUB.toFixed(2),
+      usd = response.rates.USD.toFixed(2),
+      eur = response.base;
+
+      let usd_uah = uah / usd,
+      usd_rub = rub / usd,
+      usd_eur = 1 / usd;
+
+     let html= `
+     <div class="block">
+        <h3 class="main">${response.base}</h3>
+        <div class="sub">
+         <div class="one-curr">
+            <span class="title">UAH</span>
+            <span class="value">${uah}</span>
+         </div>
+         <div class="one-curr">
+            <span class="title">RUB</span>
+            <span class="value">${rub}</span>
+         </div>
+         <div class="one-curr">
+            <span class="title">USD</span>
+            <span class="value">${usd}</span>
+         </div>
+        </div>
+     </div>
+     <div class="block">
+      <h3 class="main">USD</h3>
+      <div class="sub">
+         <div class="one-curr">
+            <span class="title">UAH</span>
+            <span class="value">${usd_uah.toFixed(2)}</span>
+         </div>
+         <div class="one-curr">
+            <span class="title">RUB</span>
+            <span class="value">${usd_rub.toFixed(2)}</span>
+         </div>
+         <div class="one-curr">
+            <span class="title">EUR</span>
+            <span class="value">${usd_eur.toFixed(2)}</span>
+         </div>
+      </div>
+   </div>
+     `
+     document.getElementsByClassName("currency__body")[0].innerHTML += html
+   })
+}
+
 function loadingToggle(){
    let spinner = document.getElementById("spinner");
    spinner.hasAttribute("hidden") ? spinner.removeAttribute('hidden') : spinner.setAttribute('hidden', '');
@@ -118,14 +161,9 @@ let getLocationPromise = new Promise((resolve, reject) => {
    }
 })
 
-function getCurrencies(){
-   fetch(`http://data.fixer.io/api/latest?access_key=ff29ea98db8265fd2014df21e97bb6a7&base=EUR&symbols=UAH,RUB,USD`)
-   .then(response => response.json())
-   .then(response => console.log("cc",response))
-}
 
 
-getLocationPromise.then(location => getWeather(location)).then(response => renderTodayWeather(response)).then(getCurrencies())
+getLocationPromise.then(location => getWeather(location)).then(response => renderTodayWeather(response)).then(renderCurrency())
 .catch((err) => {
    console.log(err)
 })
